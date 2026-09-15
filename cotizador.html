@@ -1,0 +1,807 @@
+<title>Cotizador de Argollas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+:root{
+  --bg:#ECEEF0; --surface:#FFFFFF; --surface-2:#F5F6F8; --surface-3:#E4E7EB;
+  --line:#D6DAE0; --line-strong:#B8BFC8;
+  --ink:#14171C; --ink-2:#59616D; --ink-3:#8A929E;
+  --accent:#1F5A66; --accent-ink:#FFFFFF; --accent-soft:#DBEAED;
+  --gold:#8C6318; --gold-soft:#F2E7D2; --gold-line:#D8BF8E;
+  --plat:#556A7C; --plat-soft:#E1E7EC; --plat-line:#AFBFCC;
+  --ok:#2C6E49; --ok-soft:#DCEDE2;
+  --shadow:0 1px 2px rgba(20,23,28,.06), 0 8px 24px -12px rgba(20,23,28,.18);
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1216; --surface:#171B21; --surface-2:#1D222A; --surface-3:#252C35;
+    --line:#2B323C; --line-strong:#3B4552;
+    --ink:#EDF0F3; --ink-2:#A2ABB7; --ink-3:#6C7682;
+    --accent:#63B9C6; --accent-ink:#0F1216; --accent-soft:#13343A;
+    --gold:#DCAC55; --gold-soft:#372C16; --gold-line:#6B5326;
+    --plat:#A9BDCD; --plat-soft:#1D2932; --plat-line:#3D4E5C;
+    --ok:#7EC79C; --ok-soft:#17301F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1216; --surface:#171B21; --surface-2:#1D222A; --surface-3:#252C35;
+  --line:#2B323C; --line-strong:#3B4552;
+  --ink:#EDF0F3; --ink-2:#A2ABB7; --ink-3:#6C7682;
+  --accent:#63B9C6; --accent-ink:#0F1216; --accent-soft:#13343A;
+  --gold:#DCAC55; --gold-soft:#372C16; --gold-line:#6B5326;
+  --plat:#A9BDCD; --plat-soft:#1D2932; --plat-line:#3D4E5C;
+  --ok:#7EC79C; --ok-soft:#17301F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1160px; margin:0 auto; padding:28px 20px 64px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+.masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:22px}
+.masthead-side{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+
+/* ---------- qué ve el cliente ---------- */
+.cli{display:none}
+.wrap[data-vista="cliente"] .sens{display:none !important}
+.wrap[data-vista="cliente"] .cli{display:inline}
+.wrap[data-vista="interna"]{position:relative}
+.wrap[data-vista="interna"]::before{
+  content:""; position:fixed; left:0; right:0; top:0; height:3px;
+  background:var(--accent); z-index:9; pointer-events:none;
+}
+h1{
+  font-family:"Instrument Serif",Georgia,serif; font-weight:400;
+  font-size:clamp(30px,4.4vw,44px); line-height:1.02; margin:0; letter-spacing:-.01em;
+  text-wrap:balance;
+}
+.sub{color:var(--ink-2); font-size:13.5px; margin:7px 0 0; max-width:52ch}
+.sub code{font-family:"IBM Plex Mono",monospace; font-size:12.5px; background:var(--surface-3); padding:1px 5px; border-radius:4px}
+
+/* ---------- precios base ---------- */
+.market{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:14px 18px; margin-bottom:20px; box-shadow:var(--shadow);
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:6px 26px; align-items:end;
+}
+.market-head{
+  grid-column:1/-1; display:flex; align-items:center; gap:10px;
+  font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600;
+  padding-bottom:10px; margin-bottom:2px; border-bottom:1px solid var(--line);
+}
+.market-head .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.mfield{display:flex; flex-direction:column; gap:5px; min-width:0}
+.mfield label{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-2); font-weight:600}
+.mfield .row{display:flex; align-items:baseline; gap:6px}
+.mfield .pre{color:var(--ink-3); font-size:15px}
+.mfield input{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:19px; font-weight:500; color:var(--ink);
+  background:transparent; border:none; border-bottom:1.5px solid var(--line-strong);
+  padding:2px 0 3px; width:100%; min-width:0;
+}
+.mfield input:focus{outline:none; border-bottom-color:var(--accent); background:var(--accent-soft)}
+.mfield .unit{font-size:11.5px; color:var(--ink-3); font-family:"IBM Plex Mono",monospace}
+.mfield.is-gold input{color:var(--gold)}
+.mfield.is-plat input{color:var(--plat)}
+
+/* ---------- el par ---------- */
+.pair{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:760px){ .pair{grid-template-columns:1fr} }
+
+.piece{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow)}
+.piece-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:13px 18px; border-bottom:1px solid var(--line); background:var(--surface-2);
+}
+.piece-name{font-size:16px; font-weight:600; letter-spacing:-.005em}
+.piece-tag{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3);
+  border:1px solid var(--line); border-radius:99px; padding:2px 9px; background:var(--surface); white-space:nowrap;
+}
+.piece-body{padding:16px 18px}
+
+.field{display:grid; grid-template-columns:88px 1fr; align-items:center; gap:12px; padding:8px 0}
+.field + .field{border-top:1px dotted var(--line)}
+.field > label{font-size:12.5px; color:var(--ink-2); font-weight:500}
+.field .ctl{display:flex; align-items:center; gap:11px; min-width:0}
+select, input[type=number], input[type=text]{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:14px;
+  color:var(--ink); background:var(--surface-2);
+  border:1px solid var(--line-strong); border-radius:7px; padding:6px 9px;
+}
+select{cursor:pointer; padding-right:6px}
+input[type=number]{width:74px}
+input[type=text]{width:100%; font-family:"Archivo",sans-serif}
+select:focus-visible, input:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+input[type=range]{flex:1; min-width:40px; accent-color:var(--accent); height:20px; cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+.rdout{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13.5px; color:var(--ink); min-width:58px; text-align:right; white-space:nowrap}
+.rdout .u{color:var(--ink-3); font-size:11px}
+
+.profile{display:flex; align-items:center; gap:16px; margin:14px 0 2px; padding:12px 14px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px}
+.profile svg{flex:none; display:block}
+.profile-meta{display:flex; flex-direction:column; gap:7px; min-width:0; flex:1}
+.pm{display:flex; align-items:baseline; justify-content:space-between; gap:10px; font-size:12px}
+.pm .k{color:var(--ink-2)}
+.pm .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13.5px; font-weight:500; white-space:nowrap}
+.pm .v small{color:var(--ink-3); font-weight:400; font-size:11px; margin-left:2px}
+
+.pricebox{margin-top:14px; border:1px solid var(--line); border-top-width:3px; border-radius:8px; padding:13px 15px; background:var(--surface-2)}
+.pricebox.g{border-top-color:var(--gold)}
+.pricebox.p{border-top-color:var(--plat)}
+.pricebox .lbl{font-size:10px; letter-spacing:.11em; text-transform:uppercase; font-weight:600; display:block; margin-bottom:5px}
+.pricebox.g .lbl{color:var(--gold)}
+.pricebox.p .lbl{color:var(--plat)}
+.pricebox .amt{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:26px; font-weight:500; letter-spacing:-.025em}
+
+/* ---------- material del par ---------- */
+.matbar{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:11px 16px; margin-bottom:16px; box-shadow:var(--shadow);
+}
+.matbar-label{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.matbar-hint{font-size:12px; color:var(--ink-3); margin-left:auto}
+.seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-strong); border-radius:8px; padding:2px; gap:2px}
+.seg-b{
+  font-family:inherit; font-size:12.5px; font-weight:600; color:var(--ink-2);
+  background:transparent; border:none; border-radius:6px; padding:6px 13px; cursor:pointer; white-space:nowrap;
+  transition:background .12s ease, color .12s ease;
+}
+.seg-b:hover{color:var(--ink)}
+.seg-b:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+.seg-b[aria-checked="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.seg-b[aria-checked="true"][data-mat="oro"]{color:var(--gold)}
+.seg-b[aria-checked="true"][data-mat="platino"]{color:var(--plat)}
+.seg.mini .seg-b{font-size:11px; padding:4px 10px}
+.seg-b[aria-checked="true"][data-v="interna"]{background:var(--accent); color:var(--accent-ink)}
+.mat-pill{
+  font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  border-radius:99px; padding:3px 11px; border:1px solid; white-space:nowrap;
+}
+.mat-pill.g{color:var(--gold); background:var(--gold-soft); border-color:var(--gold-line)}
+.mat-pill.p{color:var(--plat); background:var(--plat-soft); border-color:var(--plat-line)}
+
+/* ---------- totales ---------- */
+.totals{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px}
+@media (max-width:760px){ .totals{grid-template-columns:1fr} }
+.total{
+  border-radius:var(--r); padding:18px 20px; border:1px solid var(--line); box-shadow:var(--shadow);
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.total.g{background:var(--gold-soft); border-color:var(--gold-line)}
+.total.p{background:var(--plat-soft); border-color:var(--plat-line)}
+.total.n{background:var(--accent-soft); border-color:var(--accent)}
+.total .cap{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom:4px}
+.total.g .cap{color:var(--gold)}
+.total.p .cap{color:var(--plat)}
+.total.n .cap{color:var(--accent)}
+.total .big{font-family:"Instrument Serif",Georgia,serif; font-size:clamp(32px,5vw,44px); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.015em}
+.total .split{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2); text-align:right; line-height:1.7; font-variant-numeric:tabular-nums}
+.alt-card{
+  border:1px dashed var(--line-strong); border-radius:var(--r); padding:16px 20px;
+  display:flex; flex-direction:column; justify-content:center; gap:10px;
+}
+.alt-card .cap{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--ink-3)}
+.alt-row{display:flex; align-items:baseline; justify-content:space-between; gap:14px; font-size:13px; color:var(--ink-2)}
+.alt-row .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:18px; font-weight:500}
+.alt-row .v.g{color:var(--gold)}
+.alt-row .v.p{color:var(--plat)}
+
+/* ---------- paneles ---------- */
+details.panel{margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow)}
+details.panel > summary{
+  list-style:none; cursor:pointer; padding:13px 18px;
+  display:flex; align-items:center; gap:10px;
+  font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:700; color:var(--ink-2);
+}
+details.panel > summary::-webkit-details-marker{display:none}
+details.panel > summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px; border-radius:var(--r)}
+details.panel > summary .chev{
+  width:8px;height:8px;border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);
+  transform:rotate(-45deg); transition:transform .18s ease; flex:none;
+}
+details.panel[open] > summary .chev{transform:rotate(45deg)}
+details.panel > summary .hint{margin-left:auto; text-transform:none; letter-spacing:0; font-weight:400; font-size:12px; color:var(--ink-3)}
+.panel-body{padding:16px 18px 18px; border-top:1px solid var(--line)}
+
+.trace{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:760px){ .trace{grid-template-columns:1fr} }
+.trace-col h4{margin:0 0 9px; font-size:12px; font-weight:600; color:var(--ink-2)}
+.tline{
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.7;
+  background:var(--surface-2); border:1px solid var(--line); border-radius:7px;
+  padding:10px 12px; overflow-x:auto; white-space:nowrap;
+}
+.tline + .tline{margin-top:8px}
+.tline .cell{color:var(--accent); font-weight:600}
+.tline .res{color:var(--ink); font-weight:600}
+.tline .gv{color:var(--gold); font-weight:600}
+.tline .pv{color:var(--plat); font-weight:600}
+.tline .dim{color:var(--ink-3)}
+
+.lam{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:760px){ .lam{grid-template-columns:1fr} }
+.lam-col{border:1px solid var(--line); border-radius:8px; padding:13px 15px; background:var(--surface-2)}
+.lam-col h4{margin:0 0 10px; font-size:12.5px; font-weight:600}
+.lam-out{display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:7px 0; font-size:12.5px}
+.lam-out + .lam-out{border-top:1px dotted var(--line)}
+.lam-out .k{color:var(--ink-2)}
+.lam-out .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:14px; font-weight:500; white-space:nowrap}
+.lam-out.hi .v{color:var(--accent); font-size:16px}
+.lam-note{margin:14px 0 0; font-size:12px; color:var(--ink-3); line-height:1.7}
+
+.scroll{overflow:auto; max-height:340px; border:1px solid var(--line); border-radius:8px}
+table.tbl{width:100%; border-collapse:collapse; font-size:12.5px}
+table.tbl th{
+  position:sticky; top:0; background:var(--surface-2); z-index:1;
+  text-align:right; padding:9px 14px; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-2); font-weight:600; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+}
+table.tbl th:first-child{text-align:left}
+table.tbl td{padding:6px 14px; text-align:right; border-bottom:1px solid var(--line); font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+table.tbl td:first-child{text-align:left; font-weight:600}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr.on td{background:var(--accent-soft)}
+table.tbl tr.on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+
+.bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px}
+button.btn{
+  font-family:inherit; font-size:13px; font-weight:600; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:7px;
+  padding:8px 14px; cursor:pointer; transition:background .12s ease, border-color .12s ease;
+}
+button.btn:hover{background:var(--surface-3); border-color:var(--ink-3)}
+button.btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+button.btn.primary:hover{filter:brightness(1.1)}
+.badge{
+  display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600;
+  padding:6px 12px; border-radius:99px; border:1px solid transparent;
+}
+.badge.ok{background:var(--ok-soft); color:var(--ok); border-color:var(--ok)}
+.badge.off{background:var(--surface-2); color:var(--ink-3); border-color:var(--line)}
+.badge .tick{font-family:"IBM Plex Mono",monospace}
+
+footer{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--ink-3); font-size:12px; line-height:1.7; max-width:78ch}
+footer strong{color:var(--ink-2); font-weight:600}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>Cotizador de Argollas</h1>
+      <p class="sub">
+        <span class="sens">Las mismas fórmulas de la hoja <code>tabla precios ANILLOS vale</code>. Cambiá el precio del oro y todo se recalcula al instante.</span>
+        <span class="cli">Elegí la talla, las medidas y el material. El precio se actualiza al instante.</span>
+      </p>
+    </div>
+    <div class="masthead-side">
+      <div id="check" class="badge off sens"><span class="tick">·</span><span>—</span></div>
+      <div class="seg" id="vista" role="radiogroup" aria-label="Qué se muestra en pantalla">
+        <button type="button" class="seg-b" role="radio" data-v="cliente" aria-checked="true">Cliente</button>
+        <button type="button" class="seg-b" role="radio" data-v="interna" aria-checked="false">Interna</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="market sens" id="market">
+    <div class="market-head"><span class="dot"></span>Precios base del día</div>
+    <div class="mfield is-gold">
+      <label for="pOro">Oro 18k</label>
+      <div class="row"><span class="pre">$</span><input id="pOro" type="number" step="1" min="0" value="200"></div>
+      <span class="unit">por gramo</span>
+    </div>
+    <div class="mfield is-plat">
+      <label for="pPlat">Platino</label>
+      <div class="row"><span class="pre">$</span><input id="pPlat" type="number" step="1" min="0" value="250"></div>
+      <span class="unit">por gramo</span>
+    </div>
+    <div class="mfield">
+      <label for="pDia">Diamantes</label>
+      <div class="row"><span class="pre">$</span><input id="pDia" type="number" step="10" min="0" value="2000"></div>
+      <span class="unit">por quilate</span>
+    </div>
+    <div class="mfield">
+      <label for="fPlat">Peso platino</label>
+      <div class="row"><span class="pre">×</span><input id="fPlat" type="number" step="0.01" min="0" value="1.3"></div>
+      <span class="unit">sobre el peso en 18k</span>
+    </div>
+  </section>
+
+  <section class="matbar">
+    <span class="matbar-label">Material del par</span>
+    <div class="seg" id="modo" role="radiogroup" aria-label="Material del par">
+      <button type="button" class="seg-b" role="radio" data-modo="oro" data-mat="oro" aria-checked="true">Oro 18k</button>
+      <button type="button" class="seg-b" role="radio" data-modo="platino" data-mat="platino" aria-checked="false">Platino</button>
+      <button type="button" class="seg-b" role="radio" data-modo="mixto" aria-checked="false">Distinto en cada una</button>
+    </div>
+    <span class="matbar-hint" id="matHint"></span>
+  </section>
+
+  <div class="pair" id="pair"></div>
+
+  <section class="totals">
+    <div class="total g" id="totalCard">
+      <div><span class="cap" id="totalCap">Total · el par</span><div class="big" id="tot">$0,00</div></div>
+      <div class="split" id="split"></div>
+    </div>
+    <div class="alt-card" id="altCard"></div>
+  </section>
+
+  <details class="panel sens" open>
+    <summary><span class="chev"></span>Desglose del cálculo<span class="hint">las fórmulas de la hoja, con tus números</span></summary>
+    <div class="panel-body"><div class="trace" id="trace"></div></div>
+  </details>
+
+  <details class="panel sens">
+    <summary><span class="chev"></span>Lámina · taller<span class="hint">espesor y largo a cortar</span></summary>
+    <div class="panel-body">
+      <div class="lam" id="lam"></div>
+      <p class="lam-note">
+        <span class="mono">espesor a quedar = peso ÷ (ancho × factor)</span> &nbsp;·&nbsp;
+        <span class="mono">espesor lámina = espesor a quedar × 1,2</span> &nbsp;·&nbsp;
+        <span class="mono">largo = (espesor lámina × 2) + circunferencia</span>
+      </p>
+    </div>
+  </details>
+
+  <details class="panel">
+    <summary><span class="chev"></span>Tabla de tallas<span class="hint">talla 4 a 14, en pasos de 0,25</span></summary>
+    <div class="panel-body">
+      <div class="scroll">
+        <table class="tbl">
+          <thead><tr><th>Talla</th><th class="sens">Factor</th><th>Diámetro mm</th><th>Circunf. mm</th><th class="sens">Peso base</th></tr></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+      <p class="lam-note"><span class="sens">Peso calculado con el ancho y el espesor de <span id="tblRef">Mujer</span>. </span>Resaltadas, las tallas del par.</p>
+    </div>
+  </details>
+
+  <div class="bar">
+    <button class="btn primary" id="copy" type="button">Copiar cotización</button>
+    <button class="btn sens" id="reset" type="button">Volver al ejemplo de la hoja</button>
+  </div>
+
+  <footer class="sens">
+    <strong>Fórmulas idénticas al archivo original.</strong>
+    PVP = (ancho × espesor × factor × precio del gramo) + (quilates × precio del quilate). El factor sale de la tabla de tallas por coincidencia exacta, igual que el <span class="mono">BUSCARV</span> de la hoja.
+    El material lo elegís arriba y aplica a las dos argollas; «distinto en cada una» desbloquea el selector dentro de cada tarjeta. El precio en platino se calcula sobre el <em>mismo peso base</em> que el de 18k, sólo con otro precio por gramo — tal cual está en la hoja «200». El peso físico en platino (× 1,3) se muestra aparte, para el taller.
+    La <strong>contextura</strong> es informativa: en el archivo original tampoco entra en ninguna fórmula.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* Tabla de tallas del archivo: talla → factor → circunferencia (mm).
+   El diámetro se deriva de la circunferencia porque en el original varias
+   celdas de esa columna quedaron convertidas a fecha por la hoja de cálculo. */
+var TALLAS = [
+  [4,0.69,46.68],[4.25,0.70,47.25],[4.5,0.71,47.97],[4.75,0.72,48.79],
+  [5,0.73,49.32],[5.25,0.74,49.95],[5.5,0.75,50.58],[5.75,0.755,51.21],
+  [6,0.76,51.87],[6.25,0.77,52.50],[6.5,0.78,53.16],[6.75,0.79,53.82],
+  [7,0.80,54.51],[7.25,0.81,54.82],[7.5,0.82,55.76],[7.75,0.83,56.45],
+  [8,0.84,57.15],[8.25,0.845,57.65],[8.5,0.85,58.21],[8.75,0.86,58.72],
+  [9,0.87,59.34],[9.25,0.88,60.38],[9.5,0.89,60.98],[9.75,0.90,61.64],
+  [10,0.91,62.33],[10.25,0.92,62.89],[10.5,0.93,63.46],[10.75,0.94,64.21],
+  [11,0.95,64.97],[11.25,0.955,65.50],[11.5,0.96,66.22],[11.75,0.97,66.73],
+  [12,0.98,67.51],[12.25,0.99,68.14],[12.5,1.00,68.77],[12.75,1.01,69.43],
+  [13,1.02,70.15],[13.25,1.03,70.87],[13.5,1.04,71.60],[13.75,1.05,72.32],
+  [14,1.06,73.04]
+];
+function fila(t){
+  for (var i = 0; i < TALLAS.length; i++) if (TALLAS[i][0] === t) return TALLAS[i];
+  return TALLAS[8];
+}
+
+var REF = {
+  base: { pOro:200, pPlat:250, pDia:2000, fPlat:1.3 },
+  modo: "oro",                                  /* oro | platino | mixto */
+  piezas: [
+    { nombre:"Mujer",  talla:6, ancho:5, espesor:2, ct:0.03, contextura:"fino", mat:"oro" },
+    { nombre:"Hombre", talla:8, ancho:5, espesor:2, ct:0,    contextura:"",     mat:"oro" }
+  ]
+};
+
+/* Material que aplica a cada argolla: el del par, salvo que se elija «mixto». */
+function matDe(i){
+  return estado.modo === "mixto" ? (estado.piezas[i].mat || "oro") : estado.modo;
+}
+var NOMBRE_MAT = { oro:"Oro 18k", platino:"Platino" };
+function clonRef(){ return JSON.parse(JSON.stringify(REF)); }
+
+var estado = clonRef();
+var lamina = [{ tocado:false, peso:0 }, { tocado:false, peso:0 }];
+var ultimo = null;
+
+/* ---------- formato ---------- */
+function dec(v, d){
+  return new Intl.NumberFormat("es-CO", { minimumFractionDigits:d, maximumFractionDigits:d }).format(v);
+}
+var nf0 = new Intl.NumberFormat("es-CO", { maximumFractionDigits:0 });
+function dinero(v){ return "$" + dec(v, 2); }
+function talla(v){ return v % 1 === 0 ? String(v) : dec(v, 2); }
+
+/* ---------- las fórmulas de la hoja ---------- */
+function calcular(p, base){
+  var f = fila(p.talla);
+  var factor = f[1], circ = f[2];
+  var peso = p.ancho * p.espesor * factor;   /* ancho × espesor × factor */
+  var diam = p.ct * base.pDia;               /* quilates × precio del quilate */
+  return {
+    factor: factor,
+    circ: circ,
+    diametro: circ / Math.PI,
+    peso: peso,
+    pesoPlat: peso * base.fPlat,
+    diam: diam,
+    pvp18: peso * base.pOro + diam,
+    pvpPl: peso * base.pPlat + diam
+  };
+}
+
+/* ---------- las dos columnas ---------- */
+var pairEl = document.getElementById("pair");
+
+function opcionesTalla(sel){
+  return TALLAS.map(function(r){
+    return '<option value="' + r[0] + '"' + (r[0] === sel ? " selected" : "") + ">" + talla(r[0]) + "</option>";
+  }).join("");
+}
+
+function selectorMat(i){
+  var m = matDe(i);
+  if (estado.modo !== "mixto"){
+    return '<span class="mat-pill ' + (m === "oro" ? "g" : "p") + '">' + NOMBRE_MAT[m] + "</span>";
+  }
+  return '<div class="seg mini" role="radiogroup" aria-label="Material de ' + p_nombre(i) + '">'
+    + '<button type="button" class="seg-b" role="radio" data-pieza="' + i + '" data-mat="oro" aria-checked="' + (m === "oro") + '">Oro 18k</button>'
+    + '<button type="button" class="seg-b" role="radio" data-pieza="' + i + '" data-mat="platino" aria-checked="' + (m === "platino") + '">Platino</button>'
+    + "</div>";
+}
+function p_nombre(i){ return estado.piezas[i].nombre; }
+
+function tarjeta(i){
+  var p = estado.piezas[i];
+  return ''
+  + '<article class="piece">'
+  +   '<div class="piece-head"><span class="piece-name">' + p.nombre + '</span>'
+  +     '<span id="matSlot' + i + '">' + selectorMat(i) + '</span></div>'
+  +   '<div class="piece-body">'
+  +     '<div class="field"><label for="talla' + i + '">Talla</label><div class="ctl">'
+  +       '<select id="talla' + i + '" data-i="' + i + '" data-k="talla">' + opcionesTalla(p.talla) + '</select>'
+  +       '<span class="rdout sens" id="fac' + i + '"></span></div></div>'
+  +     '<div class="field"><label for="ancho' + i + '">Ancho</label><div class="ctl">'
+  +       '<input type="range" id="ancho' + i + '" data-i="' + i + '" data-k="ancho" min="1" max="12" step="0.1" value="' + p.ancho + '">'
+  +       '<span class="rdout"><b id="anchoV' + i + '"></b> <span class="u">mm</span></span></div></div>'
+  +     '<div class="field"><label for="esp' + i + '">Espesor</label><div class="ctl">'
+  +       '<input type="range" id="esp' + i + '" data-i="' + i + '" data-k="espesor" min="0.5" max="6" step="0.1" value="' + p.espesor + '">'
+  +       '<span class="rdout"><b id="espV' + i + '"></b> <span class="u">mm</span></span></div></div>'
+  +     '<div class="field"><label for="ct' + i + '">Diamantes</label><div class="ctl">'
+  +       '<input type="number" id="ct' + i + '" data-i="' + i + '" data-k="ct" min="0" step="0.01" value="' + p.ct + '">'
+  +       '<span class="rdout"><span class="u">ct</span><span class="sens"> → <b id="ctV' + i + '"></b></span></span></div></div>'
+  +     '<div class="field"><label for="cx' + i + '">Contextura</label><div class="ctl">'
+  +       '<input type="text" id="cx' + i + '" data-i="' + i + '" data-k="contextura" value="' + p.contextura + '" placeholder="fino, medio…"></div></div>'
+  +     '<div class="profile">'
+  +       '<svg width="150" height="94" viewBox="0 0 150 94" role="img" aria-label="Perfil de la argolla"><g id="pf' + i + '"></g></svg>'
+  +       '<div class="profile-meta">'
+  +         '<div class="pm"><span class="k">Medidas</span><span class="v" id="md' + i + '"></span></div>'
+  +         '<div class="pm sens"><span class="k">Peso base</span><span class="v" id="pg' + i + '"></span></div>'
+  +         '<div class="pm sens" id="ppRow' + i + '"><span class="k">Peso en platino</span><span class="v" id="pp' + i + '"></span></div>'
+  +         '<div class="pm"><span class="k">Circunferencia</span><span class="v" id="cc' + i + '"></span></div>'
+  +       '</div>'
+  +     '</div>'
+  +     '<div class="pricebox" id="pb' + i + '"><span class="lbl" id="pbl' + i + '"></span><div class="amt" id="pba' + i + '"></div></div>'
+  +   '</div>'
+  + '</article>';
+}
+
+/* ---------- perfil dibujado a escala ---------- */
+function perfil(p, mat){
+  var relleno = mat === "platino" ? "var(--plat-soft)" : "var(--gold-soft)";
+  var borde   = mat === "platino" ? "var(--plat)"      : "var(--gold)";
+  var esc = 8.5, W = 150, cy = 44;
+  var w = Math.max(4, p.ancho * esc), h = Math.max(3, p.espesor * esc);
+  var x = (W - w) / 2, y = cy - h / 2, b = cy + h / 2, d = cy - h / 2;
+  var L = function(x1, y1, x2, y2){
+    return '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="var(--ink-3)" stroke-width="1"/>';
+  };
+  return ''
+   + '<text x="75" y="12" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9" letter-spacing="1.4">PERFIL</text>'
+   + '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + relleno + '" stroke="' + borde + '" stroke-width="1.4"/>'
+   + L(x, b + 11, x + w, b + 11) + L(x, b + 7, x, b + 15) + L(x + w, b + 7, x + w, b + 15)
+   + '<text x="75" y="' + (b + 27).toFixed(1) + '" text-anchor="middle" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace" font-size="10">' + dec(p.ancho, 1) + ' mm</text>'
+   + L(x + w + 11, d, x + w + 11, b) + L(x + w + 7, d, x + w + 15, d) + L(x + w + 7, b, x + w + 15, b)
+   + '<text x="' + Math.min(x + w + 19, 118).toFixed(1) + '" y="' + (cy + 3.5).toFixed(1) + '" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace" font-size="10">' + dec(p.espesor, 1) + '</text>';
+}
+
+/* ---------- render ---------- */
+function base(){
+  return {
+    pOro:  +document.getElementById("pOro").value  || 0,
+    pPlat: +document.getElementById("pPlat").value || 0,
+    pDia:  +document.getElementById("pDia").value  || 0,
+    fPlat: +document.getElementById("fPlat").value || 0
+  };
+}
+
+function render(){
+  var b = base();
+  var r = [calcular(estado.piezas[0], b), calcular(estado.piezas[1], b)];
+  ultimo = { b:b, r:r };
+
+  /* el selector del par manda; sólo «mixto» deja elegir por argolla */
+  var botones = document.getElementById("modo").querySelectorAll(".seg-b");
+  for (var k = 0; k < botones.length; k++){
+    botones[k].setAttribute("aria-checked", botones[k].getAttribute("data-modo") === estado.modo);
+  }
+  document.getElementById("matHint").textContent = estado.modo === "mixto"
+    ? "Elegí el material de cada argolla en su tarjeta."
+    : "Las dos argollas en " + NOMBRE_MAT[estado.modo].toLowerCase() + ".";
+
+  for (var i = 0; i < 2; i++){
+    var p = estado.piezas[i], c = r[i], m = matDe(i);
+    var esOro = (m === "oro");
+    var precio = esOro ? c.pvp18 : c.pvpPl;
+
+    document.getElementById("matSlot" + i).innerHTML  = selectorMat(i);
+    document.getElementById("fac" + i).innerHTML      = '<span class="u">factor</span> ' + dec(c.factor, 3);
+    document.getElementById("anchoV" + i).textContent = dec(p.ancho, 1);
+    document.getElementById("espV" + i).textContent   = dec(p.espesor, 1);
+    document.getElementById("ctV" + i).textContent    = c.diam > 0 ? dinero(c.diam) : "—";
+    document.getElementById("pf" + i).innerHTML       = perfil(p, m);
+    document.getElementById("md" + i).innerHTML       = dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " <small>mm</small>";
+    document.getElementById("pg" + i).innerHTML       = dec(c.peso, 3) + " <small>g</small>";
+    document.getElementById("pp" + i).innerHTML       = dec(c.pesoPlat, 3) + " <small>g</small>";
+    document.getElementById("ppRow" + i).hidden       = esOro;
+    document.getElementById("cc" + i).innerHTML       = dec(c.circ, 2) + " <small>mm · ø " + dec(c.diametro, 2) + "</small>";
+    document.getElementById("pb" + i).className       = "pricebox " + (esOro ? "g" : "p");
+    document.getElementById("pbl" + i).textContent    = "PVP · " + NOMBRE_MAT[m];
+    document.getElementById("pba" + i).textContent    = dinero(precio);
+  }
+
+  var m0 = matDe(0), m1 = matDe(1);
+  var v0 = m0 === "oro" ? r[0].pvp18 : r[0].pvpPl;
+  var v1 = m1 === "oro" ? r[1].pvp18 : r[1].pvpPl;
+  var total = v0 + v1;
+  var t18 = r[0].pvp18 + r[1].pvp18, tpl = r[0].pvpPl + r[1].pvpPl;
+
+  var card = document.getElementById("totalCard");
+  card.className = "total " + (estado.modo === "oro" ? "g" : estado.modo === "platino" ? "p" : "n");
+  document.getElementById("totalCap").textContent = estado.modo === "mixto"
+    ? "Total · el par (materiales distintos)"
+    : "Total · el par en " + NOMBRE_MAT[estado.modo].toLowerCase();
+  document.getElementById("tot").textContent = dinero(total);
+  document.getElementById("split").innerHTML =
+      "Mujer &nbsp;" + dinero(v0) + (estado.modo === "mixto" ? " · " + NOMBRE_MAT[m0].toLowerCase() : "")
+    + "<br>Hombre " + dinero(v1) + (estado.modo === "mixto" ? " · " + NOMBRE_MAT[m1].toLowerCase() : "");
+
+  var alt = ['<span class="cap">El mismo par en…</span>'];
+  if (estado.modo !== "oro")     alt.push('<div class="alt-row"><span>Oro 18k</span><span class="v g">' + dinero(t18) + "</span></div>");
+  if (estado.modo !== "platino") alt.push('<div class="alt-row"><span>Platino</span><span class="v p">' + dinero(tpl) + "</span></div>");
+  document.getElementById("altCard").innerHTML = alt.join("");
+
+  trazo(b, r);
+  tablaTallas();
+  panelLamina(r);
+  verificar(b, t18, tpl);
+}
+
+/* ---------- desglose ---------- */
+function trazo(b, r){
+  var out = "";
+  for (var i = 0; i < 2; i++){
+    var p = estado.piezas[i], c = r[i], m = matDe(i);
+    var esOro = (m === "oro");
+    var gramo = esOro ? b.pOro : b.pPlat;
+    out += '<div class="trace-col"><h4>' + p.nombre + " · talla " + talla(p.talla) + " · " + NOMBRE_MAT[m] + "</h4>"
+      + '<div class="tline"><span class="dim">factor =</span> tabla(<span class="cell">' + talla(p.talla) + '</span>) <span class="dim">→</span> <span class="res">' + dec(c.factor, 3) + "</span></div>"
+      + '<div class="tline"><span class="dim">peso &nbsp;&nbsp;=</span> ' + dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " × " + dec(c.factor, 3) + ' <span class="dim">=</span> <span class="res">' + dec(c.peso, 3) + " g</span></div>"
+      + '<div class="tline"><span class="dim">PVP &nbsp;&nbsp;=</span> (' + dec(c.peso, 3) + " × " + nf0.format(gramo) + ") + (" + dec(p.ct, 2) + " × " + nf0.format(b.pDia) + ') <span class="dim">=</span> <span class="' + (esOro ? "gv" : "pv") + '">' + dinero(esOro ? c.pvp18 : c.pvpPl) + "</span></div>"
+      + "</div>";
+  }
+  document.getElementById("trace").innerHTML = out;
+}
+
+/* ---------- tabla de tallas ---------- */
+function tablaTallas(){
+  var p = estado.piezas[0];
+  document.getElementById("tblRef").textContent = p.nombre + " (" + dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " mm)";
+  document.getElementById("tblBody").innerHTML = TALLAS.map(function(t){
+    var on = (t[0] === estado.piezas[0].talla || t[0] === estado.piezas[1].talla);
+    return "<tr" + (on ? ' class="on"' : "") + "><td>" + talla(t[0]) + '</td><td class="sens">' + dec(t[1], 3) + "</td><td>"
+      + dec(t[2] / Math.PI, 2) + "</td><td>" + dec(t[2], 2) + '</td><td class="sens">' + dec(p.ancho * p.espesor * t[1], 3) + " g</td></tr>";
+  }).join("");
+}
+
+/* ---------- lámina ---------- */
+function panelLamina(r){
+  var out = "";
+  for (var i = 0; i < 2; i++){
+    var p = estado.piezas[i], c = r[i];
+    if (!lamina[i].tocado) lamina[i].peso = c.peso;
+    var peso = lamina[i].peso;
+    var eq = peso / (p.ancho * c.factor);
+    var el = eq * 1.2;
+    var largo = el * 2 + c.circ;
+    out += '<div class="lam-col"><h4>' + p.nombre + "</h4>"
+      + '<div class="lam-out"><span class="k"><label for="lp' + i + '">Peso a lograr</label></span>'
+      +   '<span class="v"><input type="number" id="lp' + i + '" data-i="' + i + '" class="lampeso" step="0.1" min="0.1" style="width:78px" value="' + (Math.round(peso * 1000) / 1000) + '"> g</span></div>'
+      + '<div class="lam-out"><span class="k">Espesor a quedar</span><span class="v">' + dec(eq, 3) + " mm</span></div>"
+      + '<div class="lam-out"><span class="k">Espesor de lámina</span><span class="v">' + dec(el, 3) + " mm</span></div>"
+      + '<div class="lam-out hi"><span class="k">Largo a cortar</span><span class="v">' + dec(largo, 2) + " mm</span></div>"
+      + "</div>";
+  }
+  document.getElementById("lam").innerHTML = out;
+}
+
+/* ---------- ¿sigue siendo el ejemplo de la hoja? ---------- */
+function verificar(b, t18, tpl){
+  var el = document.getElementById("check");
+  var p0 = estado.piezas[0], p1 = estado.piezas[1];
+  var mismo = b.pOro === 200 && b.pPlat === 250 && b.pDia === 2000
+    && p0.talla === 6 && p1.talla === 8
+    && p0.ancho === 5 && p1.ancho === 5
+    && p0.espesor === 2 && p1.espesor === 2
+    && p0.ct === 0.03 && p1.ct === 0;
+  if (mismo && Math.round(t18) === 3260 && Math.round(tpl) === 4060){
+    el.className = "badge ok";
+    el.innerHTML = '<span class="tick">✓</span><span>Coincide con la hoja «200»</span>';
+  } else {
+    el.className = "badge off";
+    el.innerHTML = '<span class="tick">·</span><span>Cotización nueva</span>';
+  }
+}
+
+/* ---------- eventos ---------- */
+pairEl.addEventListener("input", function(e){
+  var t = e.target, i = t.getAttribute("data-i"), k = t.getAttribute("data-k");
+  if (i === null || !k) return;
+  var v;
+  if (k === "contextura") { v = t.value; }
+  else { v = parseFloat(t.value); if (!isFinite(v)) return; }
+  estado.piezas[+i][k] = v;
+  if (k !== "contextura") lamina[+i].tocado = false;
+  guardar();
+  render();
+});
+
+document.getElementById("market").addEventListener("input", function(){ guardar(); render(); });
+
+/* qué se muestra en pantalla — arranca siempre en «Cliente», nunca se recuerda */
+var vista = "cliente";
+function aplicarVista(){
+  document.querySelector(".wrap").setAttribute("data-vista", vista);
+  var bs = document.getElementById("vista").querySelectorAll(".seg-b");
+  for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-checked", bs[i].getAttribute("data-v") === vista);
+}
+document.getElementById("vista").addEventListener("click", function(e){
+  var b = e.target.closest(".seg-b");
+  if (!b) return;
+  vista = b.getAttribute("data-v");
+  aplicarVista();
+});
+
+/* material del par */
+document.getElementById("modo").addEventListener("click", function(e){
+  var b = e.target.closest(".seg-b");
+  if (!b) return;
+  estado.modo = b.getAttribute("data-modo");
+  if (estado.modo !== "mixto") estado.piezas[0].mat = estado.piezas[1].mat = estado.modo;
+  guardar();
+  render();
+});
+
+/* material de una sola argolla, en modo mixto */
+pairEl.addEventListener("click", function(e){
+  var b = e.target.closest(".seg-b");
+  if (!b || b.getAttribute("data-pieza") === null) return;
+  var pi = b.getAttribute("data-pieza"), mm = b.getAttribute("data-mat");
+  estado.piezas[+pi].mat = mm;
+  guardar();
+  render();
+  /* el selector se vuelve a dibujar: devolvemos el foco al botón equivalente */
+  var nuevo = pairEl.querySelector('.seg-b[data-pieza="' + pi + '"][data-mat="' + mm + '"]');
+  if (nuevo) nuevo.focus();
+});
+
+document.getElementById("lam").addEventListener("input", function(e){
+  if (!e.target.classList.contains("lampeso")) return;
+  var i = +e.target.getAttribute("data-i");
+  var v = parseFloat(e.target.value);
+  if (!isFinite(v) || v <= 0) return;
+  lamina[i].tocado = true;
+  lamina[i].peso = v;
+  var foco = document.activeElement ? document.activeElement.id : null;
+  panelLamina(ultimo.r);
+  if (foco){
+    var f = document.getElementById(foco);
+    if (f) { f.focus(); try { f.setSelectionRange(f.value.length, f.value.length); } catch(err){} }
+  }
+});
+
+document.getElementById("reset").addEventListener("click", function(){
+  estado = clonRef();
+  lamina = [{ tocado:false, peso:0 }, { tocado:false, peso:0 }];
+  document.getElementById("pOro").value  = REF.base.pOro;
+  document.getElementById("pPlat").value = REF.base.pPlat;
+  document.getElementById("pDia").value  = REF.base.pDia;
+  document.getElementById("fPlat").value = REF.base.fPlat;
+  pairEl.innerHTML = tarjeta(0) + tarjeta(1);
+  guardar();
+  render();
+});
+
+document.getElementById("copy").addEventListener("click", function(){
+  var b = ultimo.b, r = ultimo.r, L = [], total = 0;
+  var interna = (vista === "interna");
+  L.push("COTIZACIÓN DE ARGOLLAS");
+  L.push(estado.modo === "mixto" ? "Material distinto en cada argolla" : "Material: " + NOMBRE_MAT[estado.modo]);
+  L.push("");
+  for (var i = 0; i < 2; i++){
+    var p = estado.piezas[i], c = r[i], m = matDe(i);
+    var esOro = (m === "oro"), precio = esOro ? c.pvp18 : c.pvpPl;
+    total += precio;
+    L.push(p.nombre.toUpperCase() + " — " + NOMBRE_MAT[m] + " · talla " + talla(p.talla) + " · " + dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " mm"
+      + (p.contextura ? " · " + p.contextura : "") + (p.ct > 0 ? " · " + dec(p.ct, 2) + " ct" : ""));
+    if (interna) L.push("  Peso " + dec(esOro ? c.peso : c.pesoPlat, 2) + " g");
+    L.push("  PVP " + dinero(precio));
+    L.push("");
+  }
+  L.push("TOTAL EL PAR ... " + dinero(total));
+  L.push("");
+  if (estado.modo !== "oro")     L.push("El mismo par en oro 18k: " + dinero(r[0].pvp18 + r[1].pvp18));
+  if (estado.modo !== "platino") L.push("El mismo par en platino: " + dinero(r[0].pvpPl + r[1].pvpPl));
+
+  var txt = L.join("\n"), btn = this, antes = btn.textContent;
+  function listo(){ btn.textContent = "Copiado ✓"; setTimeout(function(){ btn.textContent = antes; }, 1600); }
+  function respaldo(){
+    var ta = document.createElement("textarea");
+    ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); listo(); }
+    catch(err){ btn.textContent = "No se pudo copiar"; setTimeout(function(){ btn.textContent = antes; }, 1600); }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(listo, respaldo);
+  else respaldo();
+});
+
+/* ---------- recuerda los precios base en este navegador ---------- */
+function guardar(){
+  try { localStorage.setItem("cotizador-cc", JSON.stringify({ b: base(), modo: estado.modo, piezas: estado.piezas })); } catch(e){}
+}
+
+(function cargar(){
+  try {
+    var d = JSON.parse(localStorage.getItem("cotizador-cc") || "null");
+    if (!d) return;
+    if (d.b){
+      document.getElementById("pOro").value  = d.b.pOro;
+      document.getElementById("pPlat").value = d.b.pPlat;
+      document.getElementById("pDia").value  = d.b.pDia;
+      document.getElementById("fPlat").value = d.b.fPlat;
+    }
+    if (d.modo === "oro" || d.modo === "platino" || d.modo === "mixto") estado.modo = d.modo;
+    if (d.piezas && d.piezas.length === 2) estado.piezas = d.piezas;
+  } catch(e){}
+})();
+
+aplicarVista();
+pairEl.innerHTML = tarjeta(0) + tarjeta(1);
+render();
+</script>
