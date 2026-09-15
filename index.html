@@ -303,13 +303,6 @@ button.btn:hover{background:var(--surface-3); border-color:var(--ink-3)}
 button.btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 button.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 button.btn.primary:hover{filter:brightness(1.1)}
-.badge{
-  display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600;
-  padding:6px 12px; border-radius:99px; border:1px solid transparent;
-}
-.badge.ok{background:var(--ok-soft); color:var(--ok); border-color:var(--ok)}
-.badge.off{background:var(--surface-2); color:var(--ink-3); border-color:var(--line)}
-.badge .tick{font-family:"IBM Plex Mono",monospace}
 
 footer{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--ink-3); font-size:12px; line-height:1.7; max-width:78ch}
 footer strong{color:var(--ink-2); font-weight:600}
@@ -362,7 +355,6 @@ footer strong{color:var(--ink-2); font-weight:600}
       </p>
     </div>
     <div class="masthead-side">
-      <div id="check" class="badge off sens"><span class="tick">·</span><span>—</span></div>
       <div class="seg" id="vista" role="radiogroup" aria-label="Qué se muestra en pantalla">
         <button type="button" class="seg-b" role="radio" data-v="cliente" aria-checked="true">Cliente</button>
         <button type="button" class="seg-b" role="radio" data-v="interna" aria-checked="false">Interna</button>
@@ -710,7 +702,6 @@ function render(){
   trazo(b, r);
   tablaTallas();
   panelLamina(r);
-  verificar(b, t18, tpl);
 }
 
 /* ---------- desglose ---------- */
@@ -762,23 +753,6 @@ function panelLamina(r){
 }
 
 /* ---------- ¿sigue siendo el ejemplo de la hoja? ---------- */
-function verificar(b, t18, tpl){
-  var el = document.getElementById("check");
-  var p0 = estado.piezas[0], p1 = estado.piezas[1];
-  var mismo = b.pOro === 200 && b.pPlat === 250 && b.pDia === 2000
-    && p0.talla === 6 && p1.talla === 8
-    && p0.ancho === 5 && p1.ancho === 5
-    && p0.espesor === 2 && p1.espesor === 2
-    && p0.ct === 0.03 && p1.ct === 0;
-  if (mismo && Math.round(t18) === 3260 && Math.round(tpl) === 4060){
-    el.className = "badge ok";
-    el.innerHTML = '<span class="tick">✓</span><span>Coincide con la hoja «200»</span>';
-  } else {
-    el.className = "badge off";
-    el.innerHTML = '<span class="tick">·</span><span>Cotización nueva</span>';
-  }
-}
-
 /* ---------- eventos ---------- */
 pairEl.addEventListener("input", function(e){
   var t = e.target, i = t.getAttribute("data-i"), k = t.getAttribute("data-k");
