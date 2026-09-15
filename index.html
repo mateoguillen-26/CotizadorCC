@@ -283,6 +283,7 @@ table.tbl tr.on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .foto input[type=file]{position:absolute; width:1px; height:1px; opacity:0; overflow:hidden}
 .foto .thumb{width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--line-strong); background:var(--surface-2)}
 .foto .thumb[hidden]{display:none}
+.foto .thumb.logo{object-fit:contain; background:#fff; padding:4px}
 .foto label.btn{position:relative; overflow:hidden; display:inline-block; font-size:13px; font-weight:600; color:var(--ink); background:var(--surface); border:1px solid var(--line-strong); border-radius:7px; padding:8px 14px; cursor:pointer}
 .foto label.btn:hover{background:var(--surface-2)}
 .foto label.btn:focus-within{outline:2px solid var(--accent); outline-offset:1px}
@@ -315,6 +316,8 @@ footer strong{color:var(--ink-2); font-weight:600}
   .wrap, .lock{display:none !important}
   #hoja{display:block; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:12.5px; line-height:1.45}
   #hoja .h-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #1F5A66; padding-bottom:10px; margin-bottom:22px}
+  #hoja .h-left{display:flex; align-items:center; gap:14px}
+  #hoja .h-logo{max-height:22mm; max-width:60mm; object-fit:contain}
   #hoja .h-brand{font-family:"Instrument Serif",Georgia,serif; font-size:26px; letter-spacing:.01em}
   #hoja .h-brand small{display:block; font-family:"Archivo",sans-serif; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#59616D; margin-top:2px}
   #hoja .h-meta{text-align:right; font-size:11.5px; color:#59616D}
@@ -431,6 +434,13 @@ footer strong{color:var(--ink-2); font-weight:600}
       <p class="lam-note"><span class="sens">Peso calculado con el ancho y el espesor de <span id="tblRef">Mujer</span>. </span>Resaltadas, las tallas del par.</p>
     </div>
   </details>
+
+  <div class="foto">
+    <span class="lbl">Logo de la marca<small>Va en el encabezado del PDF junto al nombre. Se guarda una sola vez. PNG con fondo transparente queda mejor.</small></span>
+    <img class="thumb logo" id="logoThumb" alt="" hidden>
+    <label class="btn" for="logoFile">Elegir logo<input type="file" id="logoFile" accept="image/*"></label>
+    <button class="btn" id="logoQuitar" type="button" hidden>Quitar</button>
+  </div>
 
   <div class="foto">
     <span class="lbl">Foto para la cotización<small>Aparece en el PDF, debajo del encabezado. Opcional.</small></span>
@@ -862,37 +872,42 @@ document.getElementById("reset").addEventListener("click", function(){
   render();
 });
 
-/* foto opcional para la hoja PDF: se reduce a 1400px como JPEG y se recuerda en este navegador */
-var foto = null;
-var fotoThumb = document.getElementById("fotoThumb"), fotoQuitar = document.getElementById("fotoQuitar"), fotoFile = document.getElementById("fotoFile");
-function pintarFoto(){
-  fotoThumb.hidden = !foto; fotoQuitar.hidden = !foto;
-  if (foto) fotoThumb.src = foto;
-  else fotoThumb.removeAttribute("src");
-  try { if (foto) localStorage.setItem("cotizador-cc-foto", foto); else localStorage.removeItem("cotizador-cc-foto"); } catch(e){}
+/* imágenes que se suben para la hoja PDF (foto de referencia y logo). Se reducen en el navegador
+   y se recuerdan en localStorage. El logo se guarda como PNG para conservar la transparencia. */
+function imagenSubible(clave, MAX, png){
+  var st = { data:null };
+  var thumb = document.getElementById(clave + "Thumb"), quitar = document.getElementById(clave + "Quitar"), file = document.getElementById(clave + "File");
+  function pintar(){
+    thumb.hidden = !st.data; quitar.hidden = !st.data;
+    if (st.data) thumb.src = st.data; else thumb.removeAttribute("src");
+    try { if (st.data) localStorage.setItem("cotizador-cc-" + clave, st.data); else localStorage.removeItem("cotizador-cc-" + clave); } catch(e){}
+  }
+  try { st.data = localStorage.getItem("cotizador-cc-" + clave) || null; } catch(e){}
+  pintar();
+  file.addEventListener("change", function(){
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function(){
+      var k = Math.min(1, MAX / Math.max(img.width, img.height));
+      var cv = document.createElement("canvas");
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      var cx = cv.getContext("2d");
+      if (!png){ cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); }   /* JPEG no tiene transparencia */
+      cx.drawImage(img, 0, 0, cv.width, cv.height);
+      st.data = png ? cv.toDataURL("image/png") : cv.toDataURL("image/jpeg", 0.86);
+      URL.revokeObjectURL(url);
+      pintar();
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); alert("No se pudo leer la imagen."); };
+    img.src = url;
+    this.value = "";
+  });
+  quitar.addEventListener("click", function(){ st.data = null; pintar(); });
+  return st;
 }
-try { foto = localStorage.getItem("cotizador-cc-foto") || null; } catch(e){}
-pintarFoto();
-fotoFile.addEventListener("change", function(){
-  var f = this.files && this.files[0];
-  if (!f) return;
-  var img = new Image(), url = URL.createObjectURL(f);
-  img.onload = function(){
-    var MAX = 1400, k = Math.min(1, MAX / Math.max(img.width, img.height));
-    var cv = document.createElement("canvas");
-    cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-    var cx = cv.getContext("2d");
-    cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height);   /* fondo blanco por si trae transparencia */
-    cx.drawImage(img, 0, 0, cv.width, cv.height);
-    foto = cv.toDataURL("image/jpeg", 0.86);
-    URL.revokeObjectURL(url);
-    pintarFoto();
-  };
-  img.onerror = function(){ URL.revokeObjectURL(url); alert("No se pudo leer la imagen."); };
-  img.src = url;
-  this.value = "";
-});
-fotoQuitar.addEventListener("click", function(){ foto = null; pintarFoto(); });
+var fotoSt = imagenSubible("foto", 1400, false);
+var logoSt = imagenSubible("logo", 600, true);
 
 /* hoja de cotización en PDF: se arma con el estado actual y se manda a imprimir (Guardar como PDF) */
 function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
@@ -914,9 +929,10 @@ document.getElementById("pdf").addEventListener("click", function(){
   if (estado.modo !== "oro")     alt += '<div><span>El mismo par en oro 18k</span><b>' + dinero(r[0].pvp18 + r[1].pvp18) + '</b></div>';
   if (estado.modo !== "platino") alt += '<div><span>El mismo par en platino</span><b>' + dinero(r[0].pvpPl + r[1].pvpPl) + '</b></div>';
   document.getElementById("hoja").innerHTML =
-      '<div class="h-top"><div class="h-brand">Argollas Cristian Collection<small>Cotización</small></div>'
+      '<div class="h-top"><div class="h-left">' + (logoSt.data ? '<img class="h-logo" src="' + logoSt.data + '" alt="">' : "")
+    + '<div class="h-brand">Argollas Cristian Collection<small>Cotización</small></div></div>'
     + '<div class="h-meta"><b>' + fecha + '</b>' + (estado.modo === "mixto" ? "Material distinto en cada argolla" : "Par en " + NOMBRE_MAT[estado.modo].toLowerCase()) + '</div></div>'
-    + (foto ? '<div class="h-img"><img src="' + foto + '" alt="Foto de referencia"></div>' : "")
+    + (fotoSt.data ? '<div class="h-img"><img src="' + fotoSt.data + '" alt="Foto de referencia"></div>' : "")
     + '<table><thead><tr><th>Pieza</th><th style="text-align:right">Precio</th></tr></thead><tbody>' + filas + '</tbody></table>'
     + '<div class="h-total"><span>Total el par</span><b>' + dinero(total) + '</b></div>'
     + (alt ? '<div class="h-alt">' + alt + '</div>' : "")
@@ -924,9 +940,8 @@ document.getElementById("pdf").addEventListener("click", function(){
   var tituloAntes = document.title;
   document.title = "Cotizacion Argollas Cristian Collection " + hoy.toISOString().slice(0, 10);
   window.addEventListener("afterprint", function restaurar(){ document.title = tituloAntes; window.removeEventListener("afterprint", restaurar); });
-  var im = document.querySelector("#hoja .h-img img");
-  if (im && im.decode) im.decode().then(function(){ window.print(); }, function(){ window.print(); });
-  else window.print();
+  var ims = [].slice.call(document.querySelectorAll("#hoja img")).map(function(im){ return im.decode ? im.decode().catch(function(){}) : null; });
+  Promise.all(ims).then(function(){ window.print(); });
 });
 
 document.getElementById("copy").addEventListener("click", function(){
