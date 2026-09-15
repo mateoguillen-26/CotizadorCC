@@ -170,6 +170,20 @@ input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:
 .seg-b[aria-checked="true"][data-mat="platino"]{color:var(--plat)}
 .seg.mini .seg-b{font-size:11px; padding:4px 10px}
 .seg-b[aria-checked="true"][data-v="interna"]{background:var(--accent); color:var(--accent-ink)}
+/* candado de la vista interna */
+.lock{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(20,23,28,.45); backdrop-filter:blur(2px)}
+.lock[hidden]{display:none}
+.lock-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:20px 22px; width:min(320px, calc(100vw - 32px))}
+.lock-box h2{margin:0 0 4px; font-size:15px; font-weight:600; color:var(--ink)}
+.lock-box p{margin:0 0 12px; font-size:12.5px; color:var(--ink-2)}
+.lock-box input[type=password]{width:100%; font:inherit; font-family:"IBM Plex Mono",monospace; font-size:14px; padding:8px 10px; border:1px solid var(--line-strong); border-radius:6px; background:var(--surface-2); color:var(--ink); letter-spacing:.15em}
+.lock-box input[type=password]:focus{outline:2px solid var(--accent); outline-offset:1px}
+.lock-box input.bad{border-color:#B3261E; animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.lock-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
+.lock-actions button{font:inherit; font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:6px; cursor:pointer; border:1px solid var(--line-strong); background:transparent; color:var(--ink-2)}
+.lock-actions button.ok{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.lock-err{font-size:12px; color:#B3261E; margin-top:8px; min-height:1em}
 .mat-pill{
   font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
   border-radius:99px; padding:3px 11px; border:1px solid; white-space:nowrap;
@@ -391,6 +405,18 @@ footer strong{color:var(--ink-2); font-weight:600}
   </footer>
 </div>
 
+<div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <form class="lock-box" id="lockForm">
+    <h2 id="lockTitle">Vista interna</h2>
+    <p>Introduce la contraseña para ver costes y márgenes.</p>
+    <input type="password" id="lockPass" autocomplete="off" inputmode="numeric" aria-label="Contraseña">
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-actions">
+      <button type="button" id="lockCancel">Cancelar</button>
+      <button type="submit" class="ok">Entrar</button>
+    </div>
+  </form>
+</div>
 <script>
 "use strict";
 
@@ -696,10 +722,38 @@ function aplicarVista(){
   var bs = document.getElementById("vista").querySelectorAll(".seg-b");
   for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-checked", bs[i].getAttribute("data-v") === vista);
 }
+/* la vista interna pide contraseña; una vez abierta, vale hasta cerrar la pestaña */
+var CLAVE_INTERNA = "1969";
+var internaAbierta = false;
+try { internaAbierta = sessionStorage.getItem("cotizador-cc-interna") === "1"; } catch(e){}
+var lock = document.getElementById("lock"), lockPass = document.getElementById("lockPass"), lockErr = document.getElementById("lockErr");
+function pedirClave(){
+  lockPass.value = ""; lockPass.classList.remove("bad"); lockErr.textContent = "";
+  lock.hidden = false; lockPass.focus();
+}
+function cerrarLock(){ lock.hidden = true; }
+document.getElementById("lockCancel").addEventListener("click", cerrarLock);
+lock.addEventListener("click", function(e){ if (e.target === lock) cerrarLock(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !lock.hidden) cerrarLock(); });
+document.getElementById("lockForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  if (lockPass.value === CLAVE_INTERNA){
+    internaAbierta = true;
+    try { sessionStorage.setItem("cotizador-cc-interna", "1"); } catch(e2){}
+    cerrarLock();
+    vista = "interna"; aplicarVista();
+  } else {
+    lockErr.textContent = "Contraseña incorrecta.";
+    lockPass.classList.remove("bad"); void lockPass.offsetWidth; lockPass.classList.add("bad");
+    lockPass.select();
+  }
+});
 document.getElementById("vista").addEventListener("click", function(e){
   var b = e.target.closest(".seg-b");
   if (!b) return;
-  vista = b.getAttribute("data-v");
+  var v = b.getAttribute("data-v");
+  if (v === "interna" && !internaAbierta){ pedirClave(); return; }
+  vista = v;
   aplicarVista();
 });
 
