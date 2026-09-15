@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cotizador de Argollas</title>
+<title>Argollas Cristian Collection · Cotizador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
@@ -132,6 +132,8 @@ input[type=range]{flex:1; min-width:40px; accent-color:var(--accent); height:20p
 input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
 .rdout{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13.5px; color:var(--ink); min-width:58px; text-align:right; white-space:nowrap}
 .rdout .u{color:var(--ink-3); font-size:11px}
+input[type=number].dim{width:64px; padding:4px 7px; font-size:13.5px; text-align:right}
+.rdout.edit{display:inline-flex; align-items:center; gap:5px; min-width:0}
 
 .profile{display:flex; align-items:center; gap:16px; margin:14px 0 2px; padding:12px 14px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px}
 .profile svg{flex:none; display:block}
@@ -295,6 +297,33 @@ button.btn.primary:hover{filter:brightness(1.1)}
 footer{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--ink-3); font-size:12px; line-height:1.7; max-width:78ch}
 footer strong{color:var(--ink-2); font-weight:600}
 @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+
+/* hoja de cotización — solo existe al imprimir / guardar como PDF */
+#hoja{display:none}
+@media print{
+  @page{ size:A4; margin:18mm 16mm }
+  html, body{background:#fff !important; color:#14171C !important}
+  .wrap, .lock{display:none !important}
+  #hoja{display:block; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:12.5px; line-height:1.45}
+  #hoja .h-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #1F5A66; padding-bottom:10px; margin-bottom:22px}
+  #hoja .h-brand{font-family:"Instrument Serif",Georgia,serif; font-size:26px; letter-spacing:.01em}
+  #hoja .h-brand small{display:block; font-family:"Archivo",sans-serif; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#59616D; margin-top:2px}
+  #hoja .h-meta{text-align:right; font-size:11.5px; color:#59616D}
+  #hoja .h-meta b{display:block; color:#14171C; font-size:13px}
+  #hoja table{width:100%; border-collapse:collapse; margin-top:6px}
+  #hoja th{text-align:left; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#59616D; border-bottom:1px solid #B8BFC8; padding:6px 0}
+  #hoja td{padding:11px 0; border-bottom:1px solid #D6DAE0; vertical-align:top}
+  #hoja td.n{font-family:"IBM Plex Mono",Consolas,monospace; text-align:right; white-space:nowrap; font-size:13px}
+  #hoja td .pn{font-weight:600; font-size:13.5px}
+  #hoja td .pd{color:#59616D; margin-top:2px}
+  #hoja .h-total{display:flex; justify-content:space-between; align-items:baseline; margin-top:14px; padding:12px 0; border-top:2px solid #14171C}
+  #hoja .h-total span{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#59616D}
+  #hoja .h-total b{font-family:"IBM Plex Mono",Consolas,monospace; font-size:22px}
+  #hoja .h-alt{margin-top:14px; color:#59616D; font-size:11.5px}
+  #hoja .h-alt div{display:flex; justify-content:space-between; padding:3px 0}
+  #hoja .h-alt b{font-family:"IBM Plex Mono",Consolas,monospace; color:#14171C; font-weight:500}
+  #hoja .h-foot{margin-top:40px; font-size:10.5px; color:#8A929E; border-top:1px solid #D6DAE0; padding-top:8px}
+}
 </style>
 </head>
 <body>
@@ -303,7 +332,7 @@ footer strong{color:var(--ink-2); font-weight:600}
 
   <header class="masthead">
     <div>
-      <h1>Cotizador de Argollas</h1>
+      <h1>Argollas Cristian Collection</h1>
       <p class="sub">
         <span class="sens">Las mismas fórmulas de la hoja <code>tabla precios ANILLOS vale</code>. Cambiá el precio del oro y todo se recalcula al instante.</span>
         <span class="cli">Elegí la talla, las medidas y el material. El precio se actualiza al instante.</span>
@@ -393,7 +422,8 @@ footer strong{color:var(--ink-2); font-weight:600}
   </details>
 
   <div class="bar">
-    <button class="btn primary" id="copy" type="button">Copiar cotización</button>
+    <button class="btn primary" id="pdf" type="button">Descargar PDF</button>
+    <button class="btn" id="copy" type="button">Copiar cotización</button>
     <button class="btn sens" id="reset" type="button">Volver al ejemplo de la hoja</button>
   </div>
 
@@ -405,6 +435,7 @@ footer strong{color:var(--ink-2); font-weight:600}
   </footer>
 </div>
 
+<div id="hoja" aria-hidden="true"></div>
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
   <form class="lock-box" id="lockForm">
     <h2 id="lockTitle">Vista interna</h2>
@@ -468,6 +499,12 @@ function dec(v, d){
 var nf0 = new Intl.NumberFormat("es-CO", { maximumFractionDigits:0 });
 function dinero(v){ return "$" + dec(v, 2); }
 function talla(v){ return v % 1 === 0 ? String(v) : dec(v, 2); }
+/* barra y campo numérico muestran el mismo valor; no se pisa el campo mientras se escribe en él */
+function sincronizar(idRange, idNum, v){
+  var r = document.getElementById(idRange), n = document.getElementById(idNum);
+  if (r && document.activeElement !== r) r.value = v;
+  if (n && document.activeElement !== n) n.value = v;
+}
 
 /* ---------- las fórmulas de la hoja ---------- */
 function calcular(p, base){
@@ -520,10 +557,10 @@ function tarjeta(i){
   +       '<span class="rdout sens" id="fac' + i + '"></span></div></div>'
   +     '<div class="field"><label for="ancho' + i + '">Ancho</label><div class="ctl">'
   +       '<input type="range" id="ancho' + i + '" data-i="' + i + '" data-k="ancho" min="1" max="12" step="0.1" value="' + p.ancho + '">'
-  +       '<span class="rdout"><b id="anchoV' + i + '"></b> <span class="u">mm</span></span></div></div>'
+  +       '<span class="rdout edit"><input type="number" class="dim" id="anchoN' + i + '" data-i="' + i + '" data-k="ancho" min="1" max="12" step="0.1" value="' + p.ancho + '" aria-label="Ancho en mm"><span class="u">mm</span></span></div></div>'
   +     '<div class="field"><label for="esp' + i + '">Espesor</label><div class="ctl">'
   +       '<input type="range" id="esp' + i + '" data-i="' + i + '" data-k="espesor" min="0.5" max="6" step="0.1" value="' + p.espesor + '">'
-  +       '<span class="rdout"><b id="espV' + i + '"></b> <span class="u">mm</span></span></div></div>'
+  +       '<span class="rdout edit"><input type="number" class="dim" id="espN' + i + '" data-i="' + i + '" data-k="espesor" min="0.5" max="6" step="0.1" value="' + p.espesor + '" aria-label="Espesor en mm"><span class="u">mm</span></span></div></div>'
   +     '<div class="field"><label for="ct' + i + '">Diamantes</label><div class="ctl">'
   +       '<input type="number" id="ct' + i + '" data-i="' + i + '" data-k="ct" min="0" step="0.01" value="' + p.ct + '">'
   +       '<span class="rdout"><span class="u">ct</span><span class="sens"> → <b id="ctV' + i + '"></b></span></span></div></div>'
@@ -593,8 +630,8 @@ function render(){
 
     document.getElementById("matSlot" + i).innerHTML  = selectorMat(i);
     document.getElementById("fac" + i).innerHTML      = '<span class="u">factor</span> ' + dec(c.factor, 3);
-    document.getElementById("anchoV" + i).textContent = dec(p.ancho, 1);
-    document.getElementById("espV" + i).textContent   = dec(p.espesor, 1);
+    sincronizar("ancho" + i, "anchoN" + i, p.ancho);
+    sincronizar("esp" + i,   "espN" + i,   p.espesor);
     document.getElementById("ctV" + i).textContent    = c.diam > 0 ? dinero(c.diam) : "—";
     document.getElementById("pf" + i).innerHTML       = perfil(p, m);
     document.getElementById("md" + i).innerHTML       = dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " <small>mm</small>";
@@ -805,6 +842,38 @@ document.getElementById("reset").addEventListener("click", function(){
   pairEl.innerHTML = tarjeta(0) + tarjeta(1);
   guardar();
   render();
+});
+
+/* hoja de cotización en PDF: se arma con el estado actual y se manda a imprimir (Guardar como PDF) */
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+document.getElementById("pdf").addEventListener("click", function(){
+  var r = ultimo.r, interna = (vista === "interna"), total = 0, filas = "";
+  var hoy = new Date(), fecha = hoy.toLocaleDateString("es", { day:"numeric", month:"long", year:"numeric" });
+  for (var i = 0; i < 2; i++){
+    var p = estado.piezas[i], c = r[i], m = matDe(i);
+    var esOro = (m === "oro"), precio = esOro ? c.pvp18 : c.pvpPl;
+    total += precio;
+    var det = [NOMBRE_MAT[m], "talla " + talla(p.talla), dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " mm"];
+    if (p.contextura) det.push(esc(p.contextura));
+    if (p.ct > 0) det.push(dec(p.ct, 2) + " ct en diamantes");
+    if (interna) det.push("peso " + dec(esOro ? c.peso : c.pesoPlat, 2) + " g");
+    filas += '<tr><td><div class="pn">Argolla ' + p.nombre + '</div><div class="pd">' + det.join(" · ") + '</div></td>'
+           + '<td class="n">' + dinero(precio) + '</td></tr>';
+  }
+  var alt = "";
+  if (estado.modo !== "oro")     alt += '<div><span>El mismo par en oro 18k</span><b>' + dinero(r[0].pvp18 + r[1].pvp18) + '</b></div>';
+  if (estado.modo !== "platino") alt += '<div><span>El mismo par en platino</span><b>' + dinero(r[0].pvpPl + r[1].pvpPl) + '</b></div>';
+  document.getElementById("hoja").innerHTML =
+      '<div class="h-top"><div class="h-brand">Argollas Cristian Collection<small>Cotización</small></div>'
+    + '<div class="h-meta"><b>' + fecha + '</b>' + (estado.modo === "mixto" ? "Material distinto en cada argolla" : "Par en " + NOMBRE_MAT[estado.modo].toLowerCase()) + '</div></div>'
+    + '<table><thead><tr><th>Pieza</th><th style="text-align:right">Precio</th></tr></thead><tbody>' + filas + '</tbody></table>'
+    + '<div class="h-total"><span>Total el par</span><b>' + dinero(total) + '</b></div>'
+    + (alt ? '<div class="h-alt">' + alt + '</div>' : "")
+    + '<div class="h-foot">Precios calculados con la cotización del metal del día. Argollas Cristian Collection.</div>';
+  var tituloAntes = document.title;
+  document.title = "Cotizacion Argollas Cristian Collection " + hoy.toISOString().slice(0, 10);
+  window.addEventListener("afterprint", function restaurar(){ document.title = tituloAntes; window.removeEventListener("afterprint", restaurar); });
+  window.print();
 });
 
 document.getElementById("copy").addEventListener("click", function(){
