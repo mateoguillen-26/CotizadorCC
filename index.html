@@ -311,10 +311,10 @@ footer strong{color:var(--ink-2); font-weight:600}
 /* hoja de cotización — solo existe al imprimir / guardar como PDF */
 #hoja{display:none}
 @media print{
-  @page{ size:A4; margin:15mm 15mm }
+  @page{ size:A4; margin:0 }
   html, body{background:#fff !important; color:#14171C !important; height:100% !important; margin:0 !important; padding:0 !important; overflow:hidden !important}
   .wrap, .lock{display:none !important}
-  #hoja{display:flex; flex-direction:column; box-sizing:border-box; height:100%; max-height:100vh; overflow:hidden; break-inside:avoid; page-break-inside:avoid; page-break-after:avoid; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
+  #hoja{display:flex; flex-direction:column; box-sizing:border-box; height:100%; max-height:100vh; overflow:hidden; padding:15mm; break-inside:avoid; page-break-inside:avoid; page-break-after:avoid; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
   #hoja > *{flex:none}
   #hoja .h-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #1F5A66; padding-bottom:10px; margin-bottom:18px}
   #hoja .h-left{display:flex; align-items:center; gap:14px}
@@ -541,6 +541,7 @@ function sincronizar(idRange, idNum, v){
 }
 
 /* ---------- las fórmulas de la hoja ---------- */
+function redondear10(v){ return Math.round(v / 10) * 10; }
 function calcular(p, base){
   var f = fila(p.talla);
   var factor = f[1], circ = f[2];
@@ -553,8 +554,8 @@ function calcular(p, base){
     peso: peso,
     pesoPlat: peso * base.fPlat,
     diam: diam,
-    pvp18: peso * base.pOro + diam,
-    pvpPl: peso * base.pPlat + diam
+    pvp18: redondear10(peso * base.pOro + diam),   /* PVP redondeado a la decena */
+    pvpPl: redondear10(peso * base.pPlat + diam)
   };
 }
 
@@ -714,7 +715,7 @@ function trazo(b, r){
     out += '<div class="trace-col"><h4>' + p.nombre + " · talla " + talla(p.talla) + " · " + NOMBRE_MAT[m] + "</h4>"
       + '<div class="tline"><span class="dim">factor =</span> tabla(<span class="cell">' + talla(p.talla) + '</span>) <span class="dim">→</span> <span class="res">' + dec(c.factor, 3) + "</span></div>"
       + '<div class="tline"><span class="dim">peso &nbsp;&nbsp;=</span> ' + dec(p.ancho, 1) + " × " + dec(p.espesor, 1) + " × " + dec(c.factor, 3) + ' <span class="dim">=</span> <span class="res">' + dec(c.peso, 3) + " g</span></div>"
-      + '<div class="tline"><span class="dim">PVP &nbsp;&nbsp;=</span> (' + dec(c.peso, 3) + " × " + nf0.format(gramo) + ") + (" + dec(p.ct, 2) + " × " + nf0.format(b.pDia) + ') <span class="dim">=</span> <span class="' + (esOro ? "gv" : "pv") + '">' + dinero(esOro ? c.pvp18 : c.pvpPl) + "</span></div>"
+      + '<div class="tline"><span class="dim">PVP &nbsp;&nbsp;=</span> (' + dec(c.peso, 3) + " × " + nf0.format(gramo) + ") + (" + dec(p.ct, 2) + " × " + nf0.format(b.pDia) + ') <span class="dim">≈</span> <span class="' + (esOro ? "gv" : "pv") + '">' + dinero(esOro ? c.pvp18 : c.pvpPl) + '</span> <span class="dim">redondeado a la decena</span></div>'
       + "</div>";
   }
   document.getElementById("trace").innerHTML = out;
