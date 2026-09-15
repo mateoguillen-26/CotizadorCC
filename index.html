@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Argollas Cristian Collection · Cotizador</title>
+<title>Cristian Collection · Cotizador</title>
 <link rel="icon" type="image/png" href="/icon.png">
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -311,10 +311,10 @@ footer strong{color:var(--ink-2); font-weight:600}
 /* hoja de cotización — solo existe al imprimir / guardar como PDF */
 #hoja{display:none}
 @media print{
-  @page{ size:A4; margin:18mm 16mm }
-  html, body{background:#fff !important; color:#14171C !important; height:auto !important; margin:0 !important; padding:0 !important; overflow:visible !important}
+  @page{ size:A4; margin:15mm 15mm }
+  html, body{background:#fff !important; color:#14171C !important; height:100% !important; margin:0 !important; padding:0 !important; overflow:hidden !important}
   .wrap, .lock{display:none !important}
-  #hoja{display:flex; flex-direction:column; height:236mm; overflow:hidden; break-inside:avoid; page-break-inside:avoid; page-break-after:avoid; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
+  #hoja{display:flex; flex-direction:column; box-sizing:border-box; height:100%; max-height:100vh; overflow:hidden; break-inside:avoid; page-break-inside:avoid; page-break-after:avoid; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
   #hoja > *{flex:none}
   #hoja .h-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #1F5A66; padding-bottom:10px; margin-bottom:18px}
   #hoja .h-left{display:flex; align-items:center; gap:14px}
@@ -348,7 +348,7 @@ footer strong{color:var(--ink-2); font-weight:600}
 
   <header class="masthead">
     <div>
-      <h1>Argollas Cristian Collection</h1>
+      <h1>Cristian Collection</h1>
       <p class="sub">
         <span class="sens">Las mismas fórmulas de la hoja <code>tabla precios ANILLOS vale</code>. Cambiá el precio del oro y todo se recalcula al instante.</span>
         <span class="cli">Elegí la talla, las medidas y el material. El precio se actualiza al instante.</span>
@@ -919,15 +919,15 @@ document.getElementById("pdf").addEventListener("click", function(){
   if (estado.modo !== "platino") alt += '<div><span>El mismo par en platino</span><b>' + dinero(r[0].pvpPl + r[1].pvpPl) + '</b></div>';
   document.getElementById("hoja").innerHTML =
       '<div class="h-top"><div class="h-left">' + (logoSt.data ? '<img class="h-logo" src="' + logoSt.data + '" alt="">' : "")
-    + '<div class="h-brand">Argollas Cristian Collection<small>Cotización</small></div></div>'
+    + '<div class="h-brand">Cristian Collection<small>Cotización</small></div></div>'
     + '<div class="h-meta">' + (cliente ? '<span class="cli-n">' + esc(cliente) + '</span>' : "") + '<b>' + fecha + '</b>' + (estado.modo === "mixto" ? "Material distinto en cada argolla" : "Par en " + NOMBRE_MAT[estado.modo].toLowerCase()) + '</div></div>'
     + (fotoSt.data ? '<div class="h-img"><img src="' + fotoSt.data + '" alt="Foto de referencia"></div>' : "")
     + '<table><thead><tr><th>Pieza</th><th style="text-align:right">Precio</th></tr></thead><tbody>' + filas + '</tbody></table>'
     + '<div class="h-total"><span>Total el par</span><b>' + dinero(total) + '</b></div>'
     + (alt ? '<div class="h-alt">' + alt + '</div>' : "")
-    + '<div class="h-foot">Precios calculados con la cotización del metal del día. Argollas Cristian Collection.</div>';
+    + '<div class="h-foot">Precios calculados con la cotización del metal del día. Cristian Collection.</div>';
   var tituloAntes = document.title;
-  document.title = "Cotizacion Argollas Cristian Collection " + hoy.toISOString().slice(0, 10);
+  document.title = "Cotizacion Cristian Collection " + hoy.toISOString().slice(0, 10);
   window.addEventListener("afterprint", function restaurar(){ document.title = tituloAntes; window.removeEventListener("afterprint", restaurar); });
   var ims = [].slice.call(document.querySelectorAll("#hoja img")).map(function(im){ return im.decode ? im.decode().catch(function(){}) : null; });
   Promise.all(ims).then(function(){ window.print(); });
