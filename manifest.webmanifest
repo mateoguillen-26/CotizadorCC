@@ -1,0 +1,15 @@
+{
+  "name": "Argollas Cristian Collection · Cotizador",
+  "short_name": "Cotizador",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ECEEF0",
+  "theme_color": "#1F5A66",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Argollas Cristian Collection · Cotizador</title>
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Cotizador">
+<meta name="application-name" content="Cotizador">
+<meta name="theme-color" content="#1F5A66">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
@@ -313,9 +319,10 @@ footer strong{color:var(--ink-2); font-weight:600}
 #hoja{display:none}
 @media print{
   @page{ size:A4; margin:18mm 16mm }
-  html, body{background:#fff !important; color:#14171C !important}
+  html, body{background:#fff !important; color:#14171C !important; height:auto !important; margin:0 !important; padding:0 !important; overflow:visible !important}
   .wrap, .lock{display:none !important}
-  #hoja{display:block; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
+  #hoja{display:flex; flex-direction:column; height:236mm; overflow:hidden; break-inside:avoid; page-break-inside:avoid; page-break-after:avoid; font-family:"Archivo","Segoe UI",Arial,sans-serif; color:#14171C; font-size:15px; line-height:1.45}
+  #hoja > *{flex:none}
   #hoja .h-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #1F5A66; padding-bottom:10px; margin-bottom:18px}
   #hoja .h-left{display:flex; align-items:center; gap:14px}
   #hoja .h-logo{max-height:20mm; max-width:55mm; object-fit:contain}
@@ -338,7 +345,7 @@ footer strong{color:var(--ink-2); font-weight:600}
   #hoja .h-alt b{font-family:"IBM Plex Mono",Consolas,monospace; color:#14171C; font-weight:500}
   #hoja .h-img{margin:0 0 16px; text-align:center}
   #hoja .h-img img{max-width:100%; max-height:65mm; border-radius:4px; border:1px solid #D6DAE0}
-  #hoja .h-foot{margin-top:32px; font-size:12px; color:#8A929E; border-top:1px solid #D6DAE0; padding-top:8px}
+  #hoja .h-foot{margin-top:auto; font-size:12px; color:#8A929E; border-top:1px solid #D6DAE0; padding-top:8px}
 }
 </style>
 </head>
