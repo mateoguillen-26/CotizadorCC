@@ -309,44 +309,6 @@ footer{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); colo
 footer strong{color:var(--ink-2); font-weight:600}
 @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
 
-/* ---------- celular: menos espacio para el perfil, letras y controles más grandes ---------- */
-@media (max-width:600px){
-  .wrap{padding:18px 14px 48px}
-  .masthead{margin-bottom:16px; gap:14px}
-  .sub{font-size:14.5px}
-  .seg-b{font-size:13.5px; padding:8px 14px}
-  .market{padding:12px 14px; gap:6px 18px}
-  .mfield label{font-size:13px}
-  .mfield input[type=number]{width:100%}
-  select, input[type=number], input[type=text]{font-size:16px; padding:8px 10px}   /* 16px evita que iOS haga zoom al enfocar */
-  .piece-head{padding:12px 14px}
-  .piece-name{font-size:17px}
-  .piece-body{padding:12px 14px}
-  .field{grid-template-columns:80px 1fr; gap:10px; padding:9px 0}
-  .field > label{font-size:14px}
-  .field .ctl{gap:9px}
-  input[type=range]{height:30px}
-  .rdout{font-size:15px}
-  .rdout .u{font-size:12px}
-  input[type=number].dim{width:72px; font-size:16px; padding:6px 7px}
-  .profile{gap:12px; padding:10px 12px; margin-top:12px}
-  .profile svg{width:104px; height:65px}
-  .pm{font-size:13.5px}
-  .pm .v{font-size:15px}
-  .pricebox .amt{font-size:30px}
-  .pricebox .lbl{font-size:11px}
-  .total{padding:16px}
-  .total .split{font-size:13px}
-  .alt-card{padding:14px 16px}
-  .alt-row{font-size:14.5px}
-  .alt-row .v{font-size:21px}
-  .foto{padding:12px; gap:10px}
-  .foto .lbl{font-size:14px; flex:1 1 100%}
-  .foto .lbl small{font-size:12.5px}
-  .foto input.cliente{flex:1 1 100%; max-width:none}
-  .bar .btn{flex:1 1 auto; padding:12px 14px; font-size:14.5px}
-}
-
 /* hoja de cotización — solo existe al imprimir / guardar como PDF */
 #hoja{display:none}
 @media print{
